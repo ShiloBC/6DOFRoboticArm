@@ -1,4 +1,4 @@
-function theta = inverse_kinematics(d, R)
+function theta = inverse_kinematics(d, R, prev_theta)
     % Input:
     %   d - position vector of end effector [x y z]
     %   R - 3 by 3 oriantation matrix of end effector
@@ -48,11 +48,29 @@ function theta = inverse_kinematics(d, R)
     R36=R36_temp(1:3,1:3);
     R03=subs(R03, [theta1 theta2 theta3], [theta1_var theta2_var theta3_var]);
     eq = R36 == R03'*R;
-    sol = solve(eq, [theta4, theta5, theta6]);
-    solution = 1;
-    theta4_var = sol.theta4(solution);
-    theta5_var = sol.theta5(solution);
-    theta6_var = sol.theta6(solution);
+    sol = solve(eq, [theta4, theta5, theta6], 'Real', true);
+
+% Copy all solutions into a matrix
+theta_solutions = [double(sol.theta4(:))'; 
+                   double(sol.theta5(:))'; 
+                   double(sol.theta6(:))'];
+
+% If there is only one solution or no previous input – select the first
+if nargin < 3 || isempty(prev_theta) || isempty(theta_solutions)
+    theta4_var = theta_solutions(1,1);
+    theta5_var = theta_solutions(2,1);
+    theta6_var = theta_solutions(3,1);
+else
+% Compute the distance of each solution from the previous joint angles
+    prev_sub = prev_theta(4:6); 
+    diffs = theta_solutions - prev_sub;
+    dists = vecnorm(diffs, 2, 1); 
+    [~, best_idx] = min(dists);
+
+    theta4_var = theta_solutions(1, best_idx);
+    theta5_var = theta_solutions(2, best_idx);
+    theta6_var = theta_solutions(3, best_idx);
+end
 
     %% Solution
     theta = [theta1_var; theta2_var; theta3_var; theta4_var; theta5_var; theta6_var];
@@ -74,16 +92,16 @@ function [theta2_best, theta3_best] = select_best_solution_with_limits(theta2_al
         t2 = theta2_all(i);
         t3 = theta3_all(i);
 
-        % סינון לפי גבולות תנועה
+        % Filter based on joint limits
         if t2 < theta2_min || t2 > theta2_max || t3 < theta3_min || t3 > theta3_max
             continue;
         end
 
-        % חישוב מיקום נקודת הקצה
+        % Compute end-effector position
         Pr_calc = l2 * cos(-t2) + l3 * cos(t3 - t2) + l4 * cos(t3 - t2 - pi/2);
         Py_calc = l1 + l2 * sin(-t2) + l3 * sin(t3 - t2) + l4 * sin(t3 - t2 - pi/2);
 
-        % מרחק שגיאה
+        % Compute position error distance
         err = sqrt((Pr_calc - Pr_target)^2 + (Py_calc - Py_target)^2);
 
         if err < min_error

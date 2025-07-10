@@ -1,0 +1,7 @@
+function TPoints = get_all_TPoints(t, initial_TPoint, target_TPoint)
+    % each point is a column vector in the TPoints matrix
+    TPoints = zeros(3, size(0:dt:T));
+    for t = 0:dt:T
+        TPoint = initial_TPoint + get_s(t) * (target_TPoint - initial_TPoint);
+    end
+end

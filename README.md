@@ -4,8 +4,14 @@ This MATLAB project focuses on the **kinematic and dynamic modeling** of a robot
 
 ## 🔧 Features
 
-- Forward kinematics using standard DH parameters
+- Forward kinematics using standard Denavit–Hartenberg (DH) parameters
+- Inverse kinematics using analytical solutions based on arm geometry and desired end-effector pose (position + orientation)
+- Trajectory generation between two 3D poses, including linear interpolation with time-based acceleration/deceleration profiles
+- Smooth motion planning, minimizing abrupt joint movements using continuity-aware selection of inverse kinematics solutions
+
+Dynamic modeling:
 - Homogeneous transformation matrices between coordinate frames
 - Jacobian matrix computation for mapping joint velocities to end-effector velocities
-- Static torque calculation based on gravity and a given payload at the end-effector
-- Modular MATLAB functions for ease of extension and experimentation
+- Static torque calculation for holding a payload against gravity at the end-effector
+- Real-time animation of the robotic arm motion in 3D space using MATLAB graphics
+- Modular MATLAB functions for ease of testing, visualization, and extension

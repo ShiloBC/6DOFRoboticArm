@@ -1,3 +1,7 @@
+clear; clc;
+fig = figure(1);
+clf(fig);
+
 initial_TPoint = [400; 0; 50];
 target_TPoint = [0; -400; -150];
 R = [1 0 0; 0 -1 0; 0 0 -1];
@@ -27,10 +31,12 @@ plot3([initial_TPoint(1) target_TPoint(1)], ...
 plot3(TPoints(1,:), TPoints(2,:), TPoints(3,:), 'y.', 'MarkerSize', 10);
 
 % Solve inverse kinematics for each point along the path
+prev_theta = []; % Not defined for the first point
+
 for i = 1:n
     T = TPoints(:, i);
     try
-        theta = inverse_kinematics(T, R);  
+        theta = inverse_kinematics(T, R, prev_theta);  
         theta = double(theta);             
     catch
         warning('Failed to solve IK for point %d. Using previous point if available.', i);
@@ -41,6 +47,7 @@ for i = 1:n
         end
     end
     CPoints(:, i) = theta;
+    prev_theta = theta; % Update for the next iteration
 end
 
 % Animate the robot motion step by step
